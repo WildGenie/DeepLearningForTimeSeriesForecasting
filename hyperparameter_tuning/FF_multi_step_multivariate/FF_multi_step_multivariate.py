@@ -99,7 +99,7 @@ def get_model(LATENT_DIM, LEARNING_RATE, T, ALPHA, HIDDEN_LAYERS):
             bias_regularizer=regularizers.l2(ALPHA),
         )
     )
-    for i in range(HIDDEN_LAYERS - 1):
+    for _ in range(HIDDEN_LAYERS - 1):
         model.add(
             Dense(
                 LATENT_DIM,
@@ -128,7 +128,7 @@ def run_training(energy, T_val, LATENT_DIM, BATCH_SIZE, LEARNING_RATE, ALPHA, HI
     X_train, Y_train, X_valid, Y_valid, X_test, test_inputs, y_scaler = create_input(
         energy, T_val
     )
-    
+
     # Initialize the model
     model = get_model(LATENT_DIM, LEARNING_RATE, T_val, ALPHA, HIDDEN_LAYERS)
     earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=5)
@@ -161,10 +161,10 @@ def run_training(energy, T_val, LATENT_DIM, BATCH_SIZE, LEARNING_RATE, ALPHA, HI
     # serialize NN architecture to JSON
     model_json = model.to_json()
     # save model JSON
-    with open("{}.json".format(model_name), "w") as f:
+    with open(f"{model_name}.json", "w") as f:
         f.write(model_json)
     # save model weights
-    model.save_weights("{}.h5".format(model_name))
+    model.save_weights(f"{model_name}.h5")
 
     # Compute test MAPE
     predictions = model.predict(X_test)

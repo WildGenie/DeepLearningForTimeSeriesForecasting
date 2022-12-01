@@ -37,7 +37,7 @@ class LogRunMetrics(Callback):
 def create_input(energy, T):
 
     from utils import TimeSeriesTensor
-    
+
     # get training data
     train = energy.copy()[energy.index < valid_start_dt][["load"]]
 
@@ -49,8 +49,9 @@ def create_input(energy, T):
 
     tensor_structure = {
         "encoder_input": (range(-T + 1, 1), ["load"]),
-        "decoder_input": (range(0, HORIZON), ["load"]),
+        "decoder_input": (range(HORIZON), ["load"]),
     }
+
     train_inputs = TimeSeriesTensor(train, "load", HORIZON, tensor_structure)
 
     look_back_dt = dt.datetime.strptime(
@@ -134,9 +135,9 @@ def predict_single_sequence(
     dec_input[0, 0, 0] = single_input_seq[0, -1, :]
 
     # create final output placeholder
-    output = list()
+    output = []
     # collect predictions
-    for t in range(horizon):
+    for _ in range(horizon):
         # predict next value
         yhat, h = decoder_model.predict([dec_input] + [states_value])
         # store prediction
@@ -154,7 +155,7 @@ def predict_multi_sequence(
     encoder_model, decoder_model, input_seq_multi, horizon, n_features
 ):
     # create output placeholder
-    predictions_all = list()
+    predictions_all = []
     for seq_index in range(input_seq_multi.shape[0]):
         # Take one sequence for decoding
         input_seq = input_seq_multi[seq_index : seq_index + 1]
@@ -218,10 +219,10 @@ def run_training(energy, T_val, LATENT_DIM_1, BATCH_SIZE, LEARNING_RATE, ALPHA):
     # serialize NN architecture to JSON
     model_json = train_model.to_json()
     # save model JSON
-    with open("{}.json".format(model_name), "w") as f:
+    with open(f"{model_name}.json", "w") as f:
         f.write(model_json)
     # save model weights
-    train_model.save_weights("{}.h5".format(model_name))
+    train_model.save_weights(f"{model_name}.h5")
 
     # Compute test MAPE
     predictions = predict_multi_sequence(

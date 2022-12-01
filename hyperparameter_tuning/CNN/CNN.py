@@ -123,7 +123,7 @@ def run_training(
 ):
 
     from utils import create_evaluation_df, mape
-    
+
     train_inputs, valid_inputs, test_inputs, y_scaler = create_input(energy, T_val)
 
     # Initialize the model
@@ -158,11 +158,11 @@ def run_training(
     # serialize NN architecture to JSON
     model_json = model.to_json()
     # save model JSON
-    with open("{}.json".format(model_name), "w") as f:
+    with open(f"{model_name}.json", "w") as f:
         f.write(model_json)
     # save model weights
-    model.save_weights("{}.h5".format(model_name))
-    
+    model.save_weights(f"{model_name}.h5")
+
     # Compute test MAPE
     predictions = model.predict(test_inputs["X"])
     eval_df = create_evaluation_df(predictions, test_inputs, HORIZON, y_scaler)
@@ -171,11 +171,11 @@ def run_training(
     # clean up model files
     for m in glob("model_*.h5"):
         os.remove(m)
-    
+
     # Log a list of validation and test MAPEs from all experiments
     run.log("validationLoss", validationLoss)
     run.log("testMAPE", testMAPE)
-    
+
     # create a ./outputs/model folder in the compute target
     # files saved in the "./outputs" folder are automatically uploaded into run history
     os.makedirs("./outputs/model", exist_ok=True)
@@ -241,20 +241,20 @@ if __name__ == "__main__":
         help="regularization coefficient",
         required=True,
     )
-    
+
     args = parser.parse_args()
 
     commondir = args.scriptdir
-    
+
     sys.path.append(commondir)
     from utils import load_data
     from extract_data import extract_data
-    
+
     # load data into Pandas dataframe
     data_dir = args.datadir
     if not os.path.exists(os.path.join(data_dir, "energy.csv")):
         extract_data(data_dir)
-        
+
     energy = load_data(data_dir)
 
     # parse values of hyperparameters
@@ -265,6 +265,6 @@ if __name__ == "__main__":
     BATCH_SIZE = int(args.BATCH_SIZE)
     LEARNING_RATE = float(args.LEARNING_RATE)
     ALPHA = float(args.ALPHA)
-    
+
     # train and evaluate RNN multi-step network with given values of hyperaparameters
     run_training(energy, T, LATENT_DIM_1, LATENT_DIM_2, KERNEL_SIZE, BATCH_SIZE, LEARNING_RATE, ALPHA)
